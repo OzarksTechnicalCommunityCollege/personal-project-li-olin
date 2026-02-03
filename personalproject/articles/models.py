@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 
 # Create your models here.
 
@@ -25,6 +26,11 @@ class Page(models.Model):
 
     def __str__(self):
         return self.title
+    def getAbsoluteUrl(self):
+        return reverse(
+            'articles:pageDetail',
+            args=[self.id]
+        )
     
 class Movie(Page):
     release = models.CharField(max_length=250)

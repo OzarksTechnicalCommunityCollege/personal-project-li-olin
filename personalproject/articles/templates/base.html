@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mini Wiki</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --muted:#6b7280; --accent:#2563eb;
+      --border: #e6e9ef; --shadow: 0 6px 18px rgba(20,24,40,0.06);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%; margin:0; background:var(--bg); color:#0f172a;}
+    .app{display:flex; min-height:100vh; gap:24px; padding:24px; box-sizing:border-box;}
+    .sidebar{
+      width:280px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .sidebar header{padding:16px 16px 8px 16px; border-bottom:1px solid var(--border);}
+    .brand{font-weight:700; color:var(--accent); font-size:18px;}
+    .search{padding:8px 16px 16px 16px;}
+    .search input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); outline:none;}
+    .pages{overflow:auto; padding:8px 12px; flex:1;}
+    .page-item{padding:10px 12px; border-radius:8px; cursor:pointer; color:#0f172a; margin-bottom:6px;}
+    .page-item:hover{background:#f1f5ff;}
+    .page-item.active{background:linear-gradient(90deg,#eef2ff,#ffffff); border:1px solid #e6eeff;}
+    .main{
+      flex:1; display:flex; flex-direction:column; gap:16px;
+    }
+    .toolbar{display:flex; gap:8px; align-items:center;}
+    .btn{background:var(--card); border:1px solid var(--border); padding:8px 12px; border-radius:8px; cursor:pointer;}
+    .btn.primary{background:var(--accent); color:white; border:none;}
+    .content-wrap{display:flex; gap:20px; align-items:flex-start;}
+    .article{
+      flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--shadow);
+      min-height:60vh; overflow:auto;
+    }
+    .toc{
+      width:260px; background:transparent; position:sticky; top:24px; align-self:flex-start;
+    }
+    .toc .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px;}
+    .toc h4{margin:0 0 8px 0; font-size:14px; color:var(--muted);}
+    .toc a{display:block; color:#0f172a; text-decoration:none; padding:6px 0; font-size:14px;}
+    .meta{color:var(--muted); font-size:13px;}
+    .editable{outline:none; min-height:320px;}
+    .controls{margin-left:auto; display:flex; gap:8px;}
+    .small{font-size:13px; color:var(--muted);}
+    @media (max-width:900px){
+      .app{padding:12px;}
+      .sidebar{display:none;}
+      .toc{display:none;}
+      .content-wrap{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar" aria-label="Pages">
+      <header>
+        <div class="brand">Mini Wiki</div>
+        <div class="small">Local editable knowledge base</div>
+      </header>
+      <div class="search">
+        <input id="pageSearch" placeholder="Search pages or content..." />
+      </div>
+      <div class="pages" id="pagesList" role="list"></div>
+      <div style="padding:12px;border-top:1px solid var(--border);">
+        <button class="btn" id="newPageBtn">+ New page</button>
+        <button class="btn" id="importBtn" title="Import JSON">Import</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <div>
+          <strong id="pageTitle">Welcome</strong>
+          <div class="meta" id="pageMeta">Last saved: never</div>
+        </div>
+        <div class="controls">
+          <button class="btn" id="editBtn">Edit</button>
+          <button class="btn primary" id="saveBtn">Save</button>
+          <button class="btn" id="revertBtn">Revert</button>
+        </div>
+      </div>
+
+      <div class="content-wrap">
+        <article class="article" id="article">
+          <!-- Article content injected here -->
+        </article>
+
+        <aside class="toc" id="toc">
+          <div class="card">
+            <h4>Table of contents</h4>
+            <nav id="tocList"></nav>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Sample pages data
+    const defaultPages = {
+      "Welcome": {
+        title: "Welcome",
+        content: `<h1>Welcome to Mini Wiki</h1>
+<p>This is a lightweight wiki-style page. Use the <strong>Edit</strong> button to modify content. Saved changes persist in your browser's localStorage.</p>
+<h2>Features</h2>
+<ul>
+  <li>Sidebar with pages</li>
+  <li>Search pages and content</li>
+  <li>Table of contents generated from headings</li>
+  <li>Editable article area with save/revert</li>
+</ul>
+<h2>Getting started</h2>
+<p>Create a new page or edit this one. Headings (h1-h3) will appear in the table of contents.</p>`
+      },
+      "About": {
+        title: "About",
+        content: `<h1>About This Wiki</h1><p>Mini Wiki is a demo showing how a simple client-side wiki can work without a server.</p>`
+      },
+      "How To": {
+        title: "How To",
+        content: `<h1>How To Use</h1><h2>Create a page</h2><p>Click New page and give it a name.</p><h2>Edit</h2><p>Click Edit, change content, then Save.</p>`
+      }
+    };
+
+    // State
+    let pages = {};
+    let current = "Welcome";
+    let editing = false;
+    const storageKey = "mini-wiki-pages-v1";
+
+    // Elements
+    const pagesList = document.getElementById('pagesList');
+    const article = document.getElementById('article');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageMeta = document.getElementById('pageMeta');
+    const editBtn = document.getElementById('editBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const revertBtn = document.getElementById('revertBtn');
+    const newPageBtn = document.getElementById('newPageBtn');
+    const pageSearch = document.getElementById('pageSearch');
+    const tocList = document.getElementById('tocList');
+    const importBtn = document.getElementById('importBtn');
+
+    // Initialize
+    function loadPages(){
+      const raw = localStorage.getItem(storageKey);
+      if(raw){
+        try{ pages = JSON.parse(raw); } catch(e){ pages = {...defaultPages}; }
+      } else {
+        pages = {...defaultPages};
+      }
+    }
+
+    function savePages(){
+      localStorage.setItem(storageKey, JSON.stringify(pages));
+    }
+
+    function renderPages(filter = ''){
+      pagesList.innerHTML = '';
+      const keys = Object.keys(pages).sort((a,b)=>a.localeCompare(b));
+      keys.forEach(k=>{
+        const itemText = (pages[k].title + ' ' + stripHtml(pages[k].content)).toLowerCase();
+        if(filter && !itemText.includes(filter.toLowerCase())) return;
+        const div = document.createElement('div');
+        div.className = 'page-item' + (k===current ? ' active' : '');
+        div.textContent = pages[k].title;
+        div.onclick = ()=>{ openPage(k); };
+        pagesList.appendChild(div);
+      });
+    }
+
+    function openPage(name){
+      if(!pages[name]) return;
+      current = name;
+      editing = false;
+      updateUI();
+    }
+
+    function updateUI(){
+      const p = pages[current];
+      pageTitle.textContent = p.title;
+      pageMeta.textContent = 'Last saved: ' + (p.savedAt || 'never');
+      article.innerHTML = p.content;
+      article.classList.remove('editable');
+      article.contentEditable = "false";
+      renderPages(pageSearch.value);
+      buildTOC();
+    }
+
+    function buildTOC(){
+      tocList.innerHTML = '';
+      const headings = article.querySelectorAll('h1,h2,h3');
+      if(!headings.length){ tocList.innerHTML = '<div class="small">No headings</div>'; return; }
+      headings.forEach((h, i)=>{
+        const id = 'h-' + i + '-' + h.textContent.trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
+        h.id = id;
+        const a = document.createElement('a');
+        a.href = '#' + id;
+        a.textContent = h.textContent;
+        a.onclick = (e)=>{ e.preventDefault(); document.getElementById(id).scrollIntoView({behavior:'smooth'}); };
+        tocList.appendChild(a);
+      });
+    }
+
+    function stripHtml(html){
+      const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || '';
+    }
+
+    // Controls
+    editBtn.addEventListener('click', ()=>{
+      if(!pages[current]) return;
+      editing = true;
+      article.contentEditable = "true";
+      article.classList.add('editable');
+      article.focus();
+    });
+
+    saveBtn.addEventListener('click', ()=>{
+      if(!editing) return;
+      pages[current].content = article.innerHTML;
+      pages[current].savedAt = new Date().toLocaleString();
+      savePages();
+      editing = false;
+      article.contentEditable = "false";
+      article.classList.remove('editable');
+      updateUI();
+    });
+
+    revertBtn.addEventListener('click', ()=>{
+      if(!pages[current]) return;
+      if(editing){
+        article.innerHTML = pages[current].content;
+        editing = false;
+        article.contentEditable = "false";
+        article.classList.remove('editable');
+      } else {
+        // revert to last saved (no-op if same)
+        article.innerHTML = pages[current].content;
+      }
+      buildTOC();
+    });
+
+    newPageBtn.addEventListener('click', ()=>{
+      const name = prompt('New page title');
+      if(!name) return;
+      if(pages[name]){ alert('A page with that title already exists.'); return; }
+      pages[name] = { title: name, content: `<h1>${name}</h1><p>Start writing...</p>`, savedAt: new Date().toLocaleString() };
+      savePages();
+      openPage(name);
+    });
+
+    pageSearch.addEventListener('input', (e)=>{
+      renderPages(e.target.value);
+    });
+
+    importBtn.addEventListener('click', ()=>{
+      const json = prompt('Paste pages JSON to import (overwrites current pages).');
+      if(!json) return;
+      try{
+        const parsed = JSON.parse(json);
+        if(typeof parsed === 'object'){
+          pages = parsed;
+          savePages();
+          openPage(Object.keys(pages)[0] || 'Welcome');
+        } else alert('Invalid format.');
+      } catch(e){ alert('Invalid JSON.'); }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){
+        e.preventDefault();
+        if(editing) saveBtn.click();
+      }
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e'){
+        e.preventDefault();
+        editBtn.click();
+      }
+    });
+
+    // Init
+    loadPages();
+    if(!pages[current]) current = Object.keys(pages)[0];
+    renderPages();
+    updateUI();
+
+    // Expose a simple API for adding pages programmatically (for advanced users)
+    window.miniWiki = {
+      addPage: (title, html)=>{ pages[title] = {title, content: html, savedAt: new Date().toLocaleString()}; savePages(); renderPages(); },
+      exportJSON: ()=> JSON.stringify(pages, null, 2),
+      clearAll: ()=>{ if(confirm('Clear all pages?')){ pages = {}; savePages(); location.reload(); } }
+    };
+  </script>
+</body>
+</html>

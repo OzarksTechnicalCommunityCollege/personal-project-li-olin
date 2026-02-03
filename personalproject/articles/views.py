@@ -1,9 +1,16 @@
 from django.shortcuts import render
 from django.http import Http404
+from django.http import HttpResponse
+from django.template import loader
 
 
 # Create your views here.
 from .models import Page
+
+def articles(request):
+    template = loader.get_template('base.html')
+    return HttpResponse(template.render())
+
 def page_list(request):
     pages = Page.created.all()
     return render(
