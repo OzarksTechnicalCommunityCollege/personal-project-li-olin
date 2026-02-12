@@ -1,0 +1,109 @@
+[
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2026-02-03T20:41:25.304Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Godzilla",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2026-02-03T20:41:32.144Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Godzilla",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2026-02-03T20:53:20.783Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Godzilla",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2026-02-10T02:06:53.938Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "1",
+    "object_repr": "Godzilla",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Status\"]}}]"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$Mxh0YPDhYinODk40QfprPv$A1dGcJh+/dBOv8yqQVxIvcNELXAmSz4HY3sy9ugYeYE=",
+    "last_login": "2026-01-27T19:06:02.774Z",
+    "is_superuser": true,
+    "username": "ar",
+    "first_name": "",
+    "last_name": "",
+    "email": "ar0832711@otc.edu",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-01-27T19:05:46.062Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "xjrlnsefedi3k4kjdiw0v66v9et9v4ch",
+  "fields": {
+    "session_data": ".eJxVjDsOgzAQRO_iOrKMMf6kTM8ZrF3vOiaJjIShinL3gESRdKN5b-YtImxriVvjJU4krqITl98OIT25HoAeUO-zTHNdlwnlociTNjnOxK_b6f4dFGhlX4fEus-QjDKWXFZDHwKCcSZl8r7zoDQOCgIadBo9WW0167BnpByQxecL6A84OA:1vkoO2:aMh3tM0YW8whyHPCkgonHf-LH5Sp_kmtSCEQ0wisHTo",
+    "expire_date": "2026-02-10T19:06:02.783Z"
+  }
+},
+{
+  "model": "taggit.tag",
+  "pk": 1,
+  "fields": {
+    "name": "monster",
+    "slug": "monster"
+  }
+},
+{
+  "model": "taggit.taggeditem",
+  "pk": 1,
+  "fields": {
+    "tag": 1,
+    "content_type": 8,
+    "object_id": 1
+  }
+},
+{
+  "model": "articles.page",
+  "pk": 1,
+  "fields": {
+    "title": "Godzilla",
+    "slug": "godzilla",
+    "body": "Testing",
+    "created": "2026-02-03T20:41:25.294Z",
+    "updated": "2026-02-10T02:06:53.934Z",
+    "status": "PB"
+  }
+}
+]

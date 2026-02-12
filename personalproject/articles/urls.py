@@ -2,9 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.Page, name='page'),
+    path('articles/', views.articles, name='articles'),
     path(
-        '<slug:post>/',
+        '<slug:page>/',
          views.Page,
          name='page'
     ),

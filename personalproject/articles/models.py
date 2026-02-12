@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 # Create your models here.
 
@@ -31,6 +32,8 @@ class Page(models.Model):
             'articles:pageDetail',
             args=[self.id]
         )
+    tags = TaggableManager()
+
     
 class Movie(Page):
     release = models.CharField(max_length=250)
@@ -40,3 +43,4 @@ class Movie(Page):
 class Monster(Page):
     debut = models.CharField(max_length=250)
     latest = models.CharField(max_length=250)
+
