@@ -5,7 +5,7 @@ from taggit.managers import TaggableManager
 
 # Create your models here.
 
-class Page(models.Model):
+class Article(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'DF', 'Draft'
         PUBLISHED = 'PB', 'Published'
@@ -24,23 +24,24 @@ class Page(models.Model):
         indexes = [
             models.Index(fields=['-created']),
         ]
-
     def __str__(self):
         return self.title
     def getAbsoluteUrl(self):
         return reverse(
-            'articles:pageDetail',
+            'articles:articleDetail',
             args=[self.id]
         )
     tags = TaggableManager()
 
-    
-class Movie(Page):
+class Movie(Article):
     release = models.CharField(max_length=250)
     director = models.CharField(max_length=250)
     country = models.CharField(max_length=250)
 
-class Monster(Page):
+class Monster(Article):
     debut = models.CharField(max_length=250)
     latest = models.CharField(max_length=250)
 
+class Blob(Article):
+    title = ""
+    
