@@ -41,7 +41,3 @@ class Movie(Article):
 class Monster(Article):
     debut = models.CharField(max_length=250)
     latest = models.CharField(max_length=250)
-
-class Blob(Article):
-    title = ""
-    
